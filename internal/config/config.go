@@ -9,6 +9,12 @@ type Config struct {
 		ReadTimeout  time.Duration `env:"REST_READ_TIMEOUT" env-default:"20s"`
 		WriteTimeout time.Duration `env:"REST_WRITE_TIMEOUT" env-default:"20s"`
 	}
+
+	Worker struct {
+		DownloadWorkerCount int `env:"DOWNLOAD_WORKER_COUNT" env-default:"3"`
+		ScanWorkerCount     int `env:"SCAN_WORKER_COUNT" env-default:"2"`
+		QueueSize           int `env:"QUEUE_SIZE" env-default:"100"`
+	}
 }
 
 func LoadConfig() (*Config, error) {

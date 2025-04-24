@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"project-go-/internal/config"
+	"project-go-/internal/task"
 	"time"
 )
 
@@ -58,6 +59,7 @@ func (svc *RestService) Stop() error {
 func (svc *RestService) Router() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/healthcheck", svc.HealthCheck).Methods("GET").Name("healthcheck")
+	router.HandleFunc("/scan", svc.HandleScanRequest).Methods("POST").Name("scan")
 	return router
 }
 
@@ -74,4 +76,15 @@ func WriteResponse(respWriter http.ResponseWriter, response interface{}, status 
 			log.Printf("Failed to marshal response")
 		}
 	}
+}
+
+func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request) {
+	image := r.URL.Query().Get("image")
+	if image == "" {
+		http.Error(w, "Missing image parameter", http.StatusBadRequest)
+		return
+	}
+	t := task.ImageTask{ImageName: image}
+	task.DownloadQueue <- t
+	WriteResponse(w, map[string]string{"msg": "Task accepted"}, http.StatusAccepted)
 }

@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"project-go-/internal/config"
 	"project-go-/internal/rest"
+	"project-go-/internal/task"
+	"project-go-/internal/worker"
 )
 
 func main() {
@@ -14,6 +16,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	task.InitQueues(cfg.Worker.QueueSize)
+	worker.StartDownloadWorkers(cfg.Worker.DownloadWorkerCount)
+	worker.StartScanWorkers(cfg.Worker.ScanWorkerCount)
 	restService := rest.NewRestService(cfg)
 	go func() {
 		errCh <- restService.Start()
