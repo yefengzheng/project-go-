@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"project-go-/internal/config"
+	"project-go-/internal/database"
+	"project-go-/internal/redis"
 	"project-go-/internal/rest"
 	"project-go-/internal/task"
 	"project-go-/internal/worker"
@@ -16,8 +18,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dbCtx, err := database.CreateNewDbContext(cfg)
+
 	task.InitQueues(cfg.Worker.QueueSize)
-	worker.StartDownloadWorkers(cfg.Worker.DownloadWorkerCount)
+	worker.StartDownloadWorkers(cfg.Worker.DownloadWorkerCount, dbCtx)
 	worker.StartScanWorkers(cfg.Worker.ScanWorkerCount)
 	restService := rest.NewRestService(cfg)
 	go func() {

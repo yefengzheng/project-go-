@@ -85,6 +85,7 @@ func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 	t := task.ImageTask{ImageName: image}
+	
 	task.DownloadQueue <- t
 	WriteResponse(w, map[string]string{"msg": "Task accepted"}, http.StatusAccepted)
 }
