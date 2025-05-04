@@ -31,7 +31,7 @@ func main() {
 		}
 	}()
 
-	restService := rest.NewRestService(cfg)
+	restService := rest.NewRestService(cfg, dbCtx)
 	go func() {
 		errCh <- restService.Start()
 	}()

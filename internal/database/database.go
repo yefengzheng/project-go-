@@ -14,12 +14,12 @@ type Context struct {
 }
 
 func CreateNewDbContext(cfg *config.Config, lifeTime time.Duration) (*Context, error) {
-	rCtx, err := redis.CreateNewRedisContext(&cfg.Redis)
+	rCtx, err := redis.CreateNewRedisContext(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	pgCtx, err := pgsql.CreateNewPgsqlContext(&cfg.PGSQL, lifeTime)
+	pgCtx, err := pgsql.CreateNewPgsqlContext(cfg, lifeTime)
 	if err != nil {
 		return nil, err
 	}

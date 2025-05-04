@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -14,7 +15,7 @@ type Context struct {
 
 func CreateNewRedisContext(cfg *config.Config) (*Context, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Address,
+		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Address, cfg.Redis.Port),
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.Database,
 	})

@@ -8,14 +8,17 @@ import (
 	"log"
 	"net/http"
 	"project-go-/internal/config"
+	"project-go-/internal/database"
 	"project-go-/internal/task"
 	"time"
 )
 
 type RestService struct {
 	cxt      context.Context
+	dbCtx    *database.Context
 	listener *RestServiceListener
 }
+
 type RestServiceListener struct {
 	config   RestServiceCofig
 	listener *http.Server
@@ -26,9 +29,10 @@ type RestServiceCofig struct {
 	WriteTimeout time.Duration
 }
 
-func NewRestService(cfg *config.Config) *RestService {
+func NewRestService(cfg *config.Config, dbCtx *database.Context) *RestService {
 	svc := &RestService{
-		cxt: context.Background(),
+		cxt:   context.Background(),
+		dbCtx: dbCtx,
 		listener: &RestServiceListener{
 			config: RestServiceCofig{
 				Port:         cfg.Rest.Port,
@@ -79,11 +83,26 @@ func WriteResponse(respWriter http.ResponseWriter, response interface{}, status 
 }
 
 func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request) {
-	images := r.URL.Query()["image"]
-	if len(images) == 0 {
+	image := r.URL.Query().Get("image")
+	if image == "" {
 		http.Error(w, "Missing image parameter", http.StatusBadRequest)
 		return
 	}
-	task.RequestQueue <- task.Request{ImageNames: images}
-	WriteResponse(w, map[string]string{"msg": "Request accepted"}, http.StatusAccepted)
+
+	// Check Redis lock before proceeding
+	lockKey := "image:" + image
+	status, err := svc.dbCtx.RedisContext.GetValue(lockKey)
+	if err == nil && status == "up" {
+		http.Error(w, "This image is currently being scanned. Please try later.", http.StatusConflict)
+		return
+	}
+
+	// Set image status to "up" with TTL
+	_ = svc.dbCtx.RedisContext.SetKeyValue(lockKey, "up", 10*time.Minute)
+
+	// Enqueue the download task
+	t := task.ImageTask{ImageName: image}
+	task.DownloadQueue <- t
+
+	WriteResponse(w, map[string]string{"msg": "Task accepted"}, http.StatusAccepted)
 }
