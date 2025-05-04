@@ -8,7 +8,6 @@ import (
 	"project-go-/internal/database"
 	"project-go-/internal/rest"
 	"project-go-/internal/task"
-	"project-go-/internal/worker"
 	"time"
 )
 
@@ -23,14 +22,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	task.InitQueues(cfg.Worker.QueueSize)
+	task.InitQueues(cfg, dbCtx)
 
-	go func() {
-		for req := range task.RequestQueue {
-			worker.ProcessRequest(req, *dbCtx)
-		}
-	}()
-
+	//go func() {
+	//	for req := range task.RequestQueue {
+	//		worker.ProcessRequest(req, *dbCtx)
+	//	}
+	//}()
 	restService := rest.NewRestService(cfg, dbCtx)
 	go func() {
 		errCh <- restService.Start()

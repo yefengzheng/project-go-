@@ -1,4 +1,4 @@
-package pgsql
+package pgsql // Consider renaming this to 'mysql' for clarity
 
 import (
 	"database/sql"
@@ -12,6 +12,7 @@ type Context struct {
 	DB *sql.DB
 }
 
+// CreateNewPgsqlContext initializes and connects to the MySQL database
 func CreateNewPgsqlContext(cfg *config.Config, lifeTime time.Duration) (*Context, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?timeout=%ds&parseTime=true",
 		cfg.PGSQL.User,
@@ -38,4 +39,15 @@ func CreateNewPgsqlContext(cfg *config.Config, lifeTime time.Duration) (*Context
 	}
 
 	return &Context{DB: db}, nil
+}
+
+// Optional: Retrieve image data by name
+func (ctx *Context) GetImage(name string) ([]byte, error) {
+	fmt.Printf("[DEBUG] Looking up: '%s'\n", name) // Add this
+	var data []byte
+	err := ctx.DB.QueryRow("SELECT data FROM images WHERE name = ?", name).Scan(&data)
+	if err != nil {
+		fmt.Printf("[DEBUG] Not found: %v\n", err)
+	}
+	return data, err
 }

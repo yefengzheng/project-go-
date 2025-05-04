@@ -30,9 +30,9 @@ type Config struct {
 		Address        string `env:"MYSQL_ADDRESS" env-default:"127.0.0.1"`
 		Port           int    `env:"MYSQL_PORT" env-default:"3306"`
 		User           string `env:"MYSQL_USER" env-default:"root"`
-		Password       string `env:"MYSQL_PASSWORD" env-default:""`
+		Password       string `env:"MYSQL_PASSWORD" env-default:"990824"`
 		ConnectTimeout int    `env:"MYSQL_CONNECT_TIMEOUT" env-default:"5"`
-		ResultDb       string `env:"MYSQL_RESULT_DB" env-default:""`
+		ResultDb       string `env:"MYSQL_RESULT_DB" env-default:"mydb"`
 	}
 }
 

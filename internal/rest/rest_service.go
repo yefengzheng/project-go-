@@ -64,6 +64,7 @@ func (svc *RestService) Router() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/healthcheck", svc.HealthCheck).Methods("GET").Name("healthcheck")
 	router.HandleFunc("/scan", svc.HandleScanRequest).Methods("POST").Name("scan")
+	router.HandleFunc("/result", svc.HandleCheckScanningResultRequest).Methods("POST").Name("result")
 	return router
 }
 
@@ -81,28 +82,32 @@ func WriteResponse(respWriter http.ResponseWriter, response interface{}, status 
 		}
 	}
 }
+func (svc *RestService) HandleCheckScanningResultRequest(w http.ResponseWriter, r *http.Request) {
+
+}
 
 func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request) {
-	image := r.URL.Query().Get("image")
-	if image == "" {
-		http.Error(w, "Missing image parameter", http.StatusBadRequest)
+	type RequestData struct {
+		Name   string `json:"name"`
+		SHA256 string `json:"sha256"`
+	}
+	type ResponseData struct {
+		Result  string `json:"result"`
+		Message string `json:"message"`
+	}
+	var req RequestData
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-
-	// Check Redis lock before proceeding
-	lockKey := "image:" + image
-	status, err := svc.dbCtx.RedisContext.GetValue(lockKey)
-	if err == nil && status == "up" {
-		http.Error(w, "This image is currently being scanned. Please try later.", http.StatusConflict)
+	var rsp ResponseData
+	if status, err := svc.dbCtx.RedisContext.GetValue(req.Name); err == nil && status == "up" { //first redis op get
+		rsp = ResponseData{
+			Result:  "ok",
+			Message: "The image is scanning",
+		}
+		WriteResponse(w, rsp, http.StatusOK)
 		return
 	}
-
-	// Set image status to "up" with TTL
-	_ = svc.dbCtx.RedisContext.SetKeyValue(lockKey, "up", 10*time.Minute)
-
-	// Enqueue the download task
-	t := task.ImageTask{ImageName: image}
-	task.DownloadQueue <- t
-
-	WriteResponse(w, map[string]string{"msg": "Task accepted"}, http.StatusAccepted)
+	task.CreateNewTask(req.Name)
 }
