@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"project-go-/internal/config"
 	"project-go-/internal/database"
-	"project-go-/internal/redis"
 	"project-go-/internal/rest"
 	"project-go-/internal/task"
 	"project-go-/internal/worker"
+	"time"
 )
 
 func main() {
@@ -18,15 +18,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dbCtx, err := database.CreateNewDbContext(cfg)
+	dbCtx, err := database.CreateNewDbContext(cfg, 10*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	task.InitQueues(cfg.Worker.QueueSize)
-	worker.StartDownloadWorkers(cfg.Worker.DownloadWorkerCount, dbCtx)
-	worker.StartScanWorkers(cfg.Worker.ScanWorkerCount)
+
+	go func() {
+		for req := range task.RequestQueue {
+			worker.ProcessRequest(req, *dbCtx)
+		}
+	}()
+
 	restService := rest.NewRestService(cfg)
 	go func() {
 		errCh <- restService.Start()
 	}()
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
 	select {

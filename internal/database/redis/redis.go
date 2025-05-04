@@ -1,40 +1,54 @@
 package redis
 
-//save cach, if have return, sycunetlock()mutex, doing try late,
 import (
-	"github.com/go-redis/redis"
 	"time"
+
+	"github.com/go-redis/redis"
+	"project-go-/internal/config"
 )
 
-// for execution context
 type Context struct {
-	config  *Config       //points to the redis config
-	rClient *redis.Client //rCLient can be shared by multiple go routines
+	config  *config.Config
+	rClient *redis.Client
 }
 
-func CreateNewRedisContext(config *Config) (rContext *Context, err error) {
+func CreateNewRedisContext(cfg *config.Config) (*Context, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Address,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.Database,
+	})
 
+	if _, err := client.Ping().Result(); err != nil {
+		return nil, err
+	}
+
+	return &Context{
+		config:  cfg,
+		rClient: client,
+	}, nil
 }
 
-func (rContext *Context) CheckHealth() (pong string, err error) {
-
+func (r *Context) CheckHealth() (string, error) {
+	return r.rClient.Ping().Result()
 }
 
-func (rContext *Context) Cleanup() {
-
-}
-func (rContext *Context) SetKeyValue(key, val string, kDuration time.Duration) (err error) {
-
+func (r *Context) Cleanup() {
+	_ = r.rClient.Close()
 }
 
-func (rContext *Context) DeleteKey(key string) {
-
+func (r *Context) SetKeyValue(key, val string, duration time.Duration) error {
+	return r.rClient.Set(key, val, duration).Err()
 }
 
-func (rContext *Context) GetValue(key string) (val string, err error) {
-
+func (r *Context) DeleteKey(key string) {
+	_ = r.rClient.Del(key).Err()
 }
 
-func (rContext *Context) GetValidTime(key string) (exp time.Duration, err error) {
+func (r *Context) GetValue(key string) (string, error) {
+	return r.rClient.Get(key).Result()
+}
 
+func (r *Context) GetValidTime(key string) (time.Duration, error) {
+	return r.rClient.TTL(key).Result()
 }

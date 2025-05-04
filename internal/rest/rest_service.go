@@ -79,13 +79,11 @@ func WriteResponse(respWriter http.ResponseWriter, response interface{}, status 
 }
 
 func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request) {
-	image := r.URL.Query().Get("image")
-	if image == "" {
+	images := r.URL.Query()["image"]
+	if len(images) == 0 {
 		http.Error(w, "Missing image parameter", http.StatusBadRequest)
 		return
 	}
-	t := task.ImageTask{ImageName: image}
-	
-	task.DownloadQueue <- t
-	WriteResponse(w, map[string]string{"msg": "Task accepted"}, http.StatusAccepted)
+	task.RequestQueue <- task.Request{ImageNames: images}
+	WriteResponse(w, map[string]string{"msg": "Request accepted"}, http.StatusAccepted)
 }

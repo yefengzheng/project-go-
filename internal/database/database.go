@@ -2,19 +2,35 @@ package database
 
 import (
 	"project-go-/internal/config"
+	"project-go-/internal/database/pgsql"
 	"project-go-/internal/database/redis"
 	"time"
 )
 
-// for our db execution context
 type Context struct {
-	config       *config.Config
+	Config       *config.Config
 	RedisContext *redis.Context
 	PgsqlContext *pgsql.Context
 }
 
-func CreateNewDbContext(config *config.Config, lifeTime time.Duration) (dbContext *Context, err error) {
-	rCtx, err := redis.CreateNewRedisContext(config) //if()
-	dbContext.RedisContext = rCtx
-	return dbContext, nil
+func CreateNewDbContext(cfg *config.Config, lifeTime time.Duration) (*Context, error) {
+	rCtx, err := redis.CreateNewRedisContext(&cfg.Redis)
+	if err != nil {
+		return nil, err
+	}
+
+	pgCtx, err := pgsql.CreateNewPgsqlContext(&cfg.PGSQL, lifeTime)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Context{
+		Config:       cfg,
+		RedisContext: rCtx,
+		PgsqlContext: pgCtx,
+	}, nil
+}
+
+func (ctx *Context) Ping() error {
+	return ctx.PgsqlContext.DB.Ping()
 }

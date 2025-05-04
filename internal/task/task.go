@@ -1,14 +1,11 @@
 package task
 
-type ImageTask struct {
-	ImageName string
+type Request struct {
+	ImageNames []string
 }
 
-var DownloadQueue chan ImageTask
-var ScanQueue chan ImageTask
+var RequestQueue chan Request
 
 func InitQueues(queueSize int) {
-	DownloadQueue = make(chan ImageTask, queueSize)
-	ScanQueue = make(chan ImageTask, queueSize)
-
+	RequestQueue = make(chan Request, queueSize)
 }

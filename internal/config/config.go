@@ -1,7 +1,10 @@
 package config
 
-import "time"
-import "github.com/ilyakaznacheev/cleanenv"
+import (
+	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+)
 
 type Config struct {
 	Rest struct {
@@ -18,18 +21,18 @@ type Config struct {
 
 	Redis struct {
 		Address  string `env:"REDIS_ADDRESS" env-default:"127.0.0.1"`
-		port     int    `env:"REDIS_PORT" env-default:"6379"`
+		Port     int    `env:"REDIS_PORT" env-default:"6379"`
 		Password string `env:"REDIS_PASSWORD" env-default:""`
-		database int    `env:"REDIS_DB" env-default:"0"`
+		Database int    `env:"REDIS_DB" env-default:"0"`
 	}
 
 	PGSQL struct {
-		Address         string `env:"MYSQL_ADDRESS" env-default:"127.0.0.1"`
-		port            int    `env:"MYSQL_PORT" env-default:"3306"`
-		user            string `env:"MYSQL_USER" env-default:"root"`
-		Password        string `env:"MYSQL_PASSWORD" env-default:""`
-		ConectedTimeOut int    `env:"MYSQL_CONNECT_TIMEOUT" env-default:"5"`
-		ResultDb        string `env:"MYSQL_RESULT_DB" env-default:""`
+		Address        string `env:"MYSQL_ADDRESS" env-default:"127.0.0.1"`
+		Port           int    `env:"MYSQL_PORT" env-default:"3306"`
+		User           string `env:"MYSQL_USER" env-default:"root"`
+		Password       string `env:"MYSQL_PASSWORD" env-default:""`
+		ConnectTimeout int    `env:"MYSQL_CONNECT_TIMEOUT" env-default:"5"`
+		ResultDb       string `env:"MYSQL_RESULT_DB" env-default:""`
 	}
 }
 
