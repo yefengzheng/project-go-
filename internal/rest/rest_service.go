@@ -83,7 +83,23 @@ func WriteResponse(respWriter http.ResponseWriter, response interface{}, status 
 	}
 }
 func (svc *RestService) HandleCheckScanningResultRequest(w http.ResponseWriter, r *http.Request) {
+	type RequestData struct {
+		Name string `json:"name"`
+	}
+	var req RequestData
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
+		http.Error(w, "Invalid request: 'name' field is required", http.StatusBadRequest)
+		return
+	}
+
+	result, err := svc.dbCtx.PgsqlContext.GetScanResult(req.Name)
+	if err != nil {
+		http.Error(w, "No scan result found", http.StatusNotFound)
+		return
+	}
+
+	WriteResponse(w, result, http.StatusOK)
 }
 
 func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request) {
@@ -109,5 +125,5 @@ func (svc *RestService) HandleScanRequest(w http.ResponseWriter, r *http.Request
 		WriteResponse(w, rsp, http.StatusOK)
 		return
 	}
-	task.CreateNewTask(req.Name)
+	task.CreateNewTask(req.Name, req.SHA256)
 }

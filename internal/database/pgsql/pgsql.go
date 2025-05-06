@@ -2,6 +2,7 @@ package pgsql // Consider renaming this to 'mysql' for clarity
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"project-go-/internal/config"
@@ -41,13 +42,55 @@ func CreateNewPgsqlContext(cfg *config.Config, lifeTime time.Duration) (*Context
 	return &Context{DB: db}, nil
 }
 
-// Optional: Retrieve image data by name
-func (ctx *Context) GetImage(name string) ([]byte, error) {
-	fmt.Printf("[DEBUG] Looking up: '%s'\n", name) // Add this
-	var data []byte
-	err := ctx.DB.QueryRow("SELECT data FROM images WHERE name = ?", name).Scan(&data)
+func (ctx *Context) InsertScanResult(req config.ScanRequest) error {
+	// Convert []string to JSON for MySQL storage
+	filesJSON, err := json.Marshal(req.MaliciousFiles)
 	if err != nil {
-		fmt.Printf("[DEBUG] Not found: %v\n", err)
+		return fmt.Errorf("failed to marshal malicious files: %w", err)
 	}
-	return data, err
+
+	query := `
+		INSERT INTO scan_results (image_name, scan_start_time, scan_finish_time, scan_result, malicious_files)
+		VALUES (?, ?, ?, ?, ?)
+	`
+	_, err = ctx.DB.Exec(query,
+		req.ImageName,
+		req.ScanStartTime,
+		req.ScanFinishTime,
+		req.ScanResult,
+		string(filesJSON),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert scan result: %w", err)
+	}
+	return nil
+}
+
+func (ctx *Context) GetScanResult(imageName string) (*config.ScanRequest, error) {
+	query := `
+		SELECT image_name, scan_start_time, scan_finish_time, scan_result, malicious_files
+		FROM scan_results
+		WHERE image_name = ?
+		ORDER BY id DESC LIMIT 1
+	`
+
+	var scan config.ScanRequest
+	var filesJSON string
+
+	err := ctx.DB.QueryRow(query, imageName).Scan(
+		&scan.ImageName,
+		&scan.ScanStartTime,
+		&scan.ScanFinishTime,
+		&scan.ScanResult,
+		&filesJSON,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal([]byte(filesJSON), &scan.MaliciousFiles); err != nil {
+		return nil, err
+	}
+
+	return &scan, nil
 }

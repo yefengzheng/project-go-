@@ -36,6 +36,14 @@ type Config struct {
 	}
 }
 
+type ScanRequest struct {
+	ImageName      string   `json:"imageName"`
+	ScanStartTime  string   `json:"scanStartTime"`
+	ScanFinishTime string   `json:"scanFinishTime"`
+	ScanResult     string   `json:"scanResult"`
+	MaliciousFiles []string `json:"maliciousFiles"`
+}
+
 func LoadConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := cleanenv.ReadEnv(cfg); err != nil {
