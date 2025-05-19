@@ -20,17 +20,17 @@ type Config struct {
 	}
 
 	Redis struct {
-		Address  string `env:"REDIS_ADDRESS" env-default:"127.0.0.1"`
-		Port     int    `env:"REDIS_PORT" env-default:"6379"`
+		Address  string `env:"REDIS_ADDRESS" env-default:"**"`
+		Port     int    `env:"REDIS_PORT" env-default:"**"`
 		Password string `env:"REDIS_PASSWORD" env-default:""`
 		Database int    `env:"REDIS_DB" env-default:"0"`
 	}
 
 	PGSQL struct {
-		Address        string `env:"MYSQL_ADDRESS" env-default:"127.0.0.1"`
-		Port           int    `env:"MYSQL_PORT" env-default:"3306"`
-		User           string `env:"MYSQL_USER" env-default:"root"`
-		Password       string `env:"MYSQL_PASSWORD" env-default:"990824"`
+		Address        string `env:"MYSQL_ADDRESS" env-default:"**"`
+		Port           int    `env:"MYSQL_PORT" env-default:"**"`
+		User           string `env:"MYSQL_USER" env-default:"**"`
+		Password       string `env:"MYSQL_PASSWORD" env-default:"**"`
 		ConnectTimeout int    `env:"MYSQL_CONNECT_TIMEOUT" env-default:"5"`
 		ResultDb       string `env:"MYSQL_RESULT_DB" env-default:"mydb"`
 	}
