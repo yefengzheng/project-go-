@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	"log"
 	"project-go-/internal/config"
 	"time"
 )
@@ -15,16 +16,12 @@ type Context struct {
 
 // CreateNewPgsqlContext initializes and connects to the MySQL database
 func CreateNewPgsqlContext(cfg *config.Config, lifeTime time.Duration) (*Context, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?timeout=%ds&parseTime=true",
-		cfg.PGSQL.User,
-		cfg.PGSQL.Password,
-		cfg.PGSQL.Address,
-		cfg.PGSQL.Port,
-		cfg.PGSQL.ResultDb,
-		cfg.PGSQL.ConnectTimeout,
-	)
+	log.Println("Connecting to PostgresSQL DB....")
 
-	db, err := sql.Open("mysql", dsn)
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.PGSQL.User, cfg.PGSQL.Password, cfg.PGSQL.Address, cfg.PGSQL.Port, cfg.PGSQL.ResultDb)
+
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open DB: %w", err)
 	}
@@ -36,9 +33,10 @@ func CreateNewPgsqlContext(cfg *config.Config, lifeTime time.Duration) (*Context
 
 	// Ping to test connection
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to connect to DB: %w", err)
+		return nil, fmt.Errorf("failed to connect to Postgres DB: %w", err)
 	}
 
+	log.Printf("Connected to PostgresDB %s", connStr)
 	return &Context{DB: db}, nil
 }
 

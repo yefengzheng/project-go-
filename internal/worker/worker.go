@@ -11,6 +11,7 @@ import (
 func StartDownloadWorkers(n int, in <-chan *task.ImageTask, out chan<- *task.ImageTask, dbCtx *database.Context) {
 	for i := 0; i < n; i++ {
 		go func(id int) {
+			log.Printf("[Downloader-%d] started", id)
 			for t := range in {
 				log.Printf("[Downloader-%d] downloading image: %s", id, t.ImageName)
 				//TODO set redis record (second redis op)
@@ -27,6 +28,7 @@ func StartDownloadWorkers(n int, in <-chan *task.ImageTask, out chan<- *task.Ima
 func StartScanWorkers(n int, in <-chan *task.ImageTask, dbCtx *database.Context) {
 	for i := 0; i < n; i++ {
 		go func(id int) {
+			log.Printf("[Scanner-%d] started", id)
 			for t := range in {
 				log.Printf("[Scanner-%d] scanning image: %s", id, t.ImageName)
 				//TODO delete redis (3rd redis op)

@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scanner-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - REST_PORT=8080
+      - REST_READ_TIMEOUT=20s
+      - REST_WRITE_TIMEOUT=20s
+      - DOWNLOAD_WORKER_COUNT=3
+      - SCAN_WORKER_COUNT=3
+      - QUEUE_SIZE=100
+      - REDIS_ADDRESS=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - MYSQL_ADDRESS=postgres
+      - MYSQL_PORT=5432
+      - MYSQL_USER=postgres
+      - MYSQL_PASSWORD=postgres
+      - MYSQL_CONNECT_TIMEOUT=5
+      - MYSQL_RESULT_DB=result_db
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: scanner-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: scanner-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=result_db
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:

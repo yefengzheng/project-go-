@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	log.Println("starting scanner service...")
 	errCh := make(chan error, 1)
 	cfg, err := config.LoadConfig()
 	if err != nil {
