@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app-deployment
+  labels:
+    app: go-app
+spec:
+  replicas: 1 # Deploy multiple replicas for high availability
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+        - name: go-app
+          image: us-central1-docker.pkg.dev/peerless-tiger-459120-r1/project-go/scanner:v1.0 # Replace with your image
+          ports:
+            - containerPort: 8080 # The port your Go app listens on
+          env:
+            # Environment variables to connect to Redis and Postgres services
+            - name: POSTGRES_HOST
+              value: postgres-service # K8s service name
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_CONNECT_TIMEOUT
+              value: "5"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_DB
+            - name: REDIS_HOST
+              value: redis-service # K8s service name
+            - name: REDIS_PORT
+              value: "6379"
+            # Optional: Load from ConfigMap
+            - name: APP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-config
+                  key: APP_PORT
+          # Add liveness and readiness probes for robust deployments
+          livenessProbe:
+            httpGet:
+              path: /healthcheck # Or your actual health check endpoint
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

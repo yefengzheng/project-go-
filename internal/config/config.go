@@ -20,25 +20,19 @@ type Config struct {
 	}
 
 	Redis struct {
-		Address  string `env:"REDIS_ADDRESS" env-default:"0.0.0.0"`
+		Address  string `env:"REDIS_HOST" env-default:"redis-serves"`
 		Port     int    `env:"REDIS_PORT" env-default:"6379"`
-		Address  string `env:"REDIS_ADDRESS" env-default:"**"`
-		Port     int    `env:"REDIS_PORT" env-default:"**"`
 		Password string `env:"REDIS_PASSWORD" env-default:""`
 		Database int    `env:"REDIS_DB" env-default:"0"`
 	}
 
 	PGSQL struct {
-		Address        string `env:"MYSQL_ADDRESS" env-default:"0.0.0.0"`
-		Port           int    `env:"MYSQL_PORT" env-default:"5432"`
-		User           string `env:"MYSQL_USER" env-default:"postgres"`
-		Password       string `env:"MYSQL_PASSWORD" env-default:"postgres"`
-		Address        string `env:"MYSQL_ADDRESS" env-default:"**"`
-		Port           int    `env:"MYSQL_PORT" env-default:"**"`
-		User           string `env:"MYSQL_USER" env-default:"**"`
-		Password       string `env:"MYSQL_PASSWORD" env-default:"**"`
-		ConnectTimeout int    `env:"MYSQL_CONNECT_TIMEOUT" env-default:"5"`
-		ResultDb       string `env:"MYSQL_RESULT_DB" env-default:"result_db"`
+		Address        string `env:"POSTGRES_HOST" env-default:"postgres-serves"`
+		Port           int    `env:"POSTGRES_PORT" env-default:"5432"`
+		User           string `env:"POSTGRES_USER" env-default:"postgres"`
+		Password       string `env:"POSTGRES_PASSWORD" env-default:"postgres"`
+		ConnectTimeout int    `env:"POSTGRES_CONNECT_TIMEOUT" env-default:"5"`
+		ResultDb       string `env:"POSTGRES_DB" env-default:"result_db"`
 	}
 }
 

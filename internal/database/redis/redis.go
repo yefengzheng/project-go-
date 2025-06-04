@@ -15,7 +15,7 @@ type Context struct {
 }
 
 func CreateNewRedisContext(cfg *config.Config) (*Context, error) {
-	log.Println("Connecting to Redis...")
+	log.Println("Connecting to Redis, addr: " + cfg.Redis.Address)
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Address, cfg.Redis.Port),
 		Password: cfg.Redis.Password,
